@@ -1,0 +1,662 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Planning de Projet</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.1.3/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.10.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap">
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #f8f9fa;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 95%;
+            width: 100%;
+            background-color: white;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            border-radius: 20px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 2em;
+            color: #343a40;
+            font-weight: 700;
+        }
+        .input-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin-bottom: 10px;
+            justify-content: space-between;
+        }
+        .input-container label {
+            font-weight: 700;
+            color: #343a40;
+        }
+        .input-container input[type="date"],
+        .input-container input[type="number"],
+        .input-container input[type="text"] {
+            padding: 10px;
+            border: 1px solid #ced4da;
+            border-radius: 5px;
+            font-size: 1em;
+        }
+        .input-container .clear-date-button {
+            background-color: transparent;
+            border: none;
+            font-size: 1.5em;
+            color: #dc3545;
+            cursor: pointer;
+        }
+        .input-container .clear-date-button:hover {
+            color: #c82333;
+        }
+        #phases-container,
+        #milestones-container {
+            width: 100%;
+            margin-bottom: 10px;
+        }
+        .phase-item,
+        .milestone-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 5px;
+            border: 1px solid #ced4da;
+            border-radius: 5px;
+            margin-bottom: 10px;
+        }
+        .phase-item input[type="text"],
+        .phase-item input[type="number"],
+        .milestone-item input[type="text"],
+        .milestone-item input[type="date"] {
+            padding: 5px;
+            border: 1px solid #ced4da;
+            border-radius: 5px;
+            font-size: 1em;
+            margin-right: 10px;
+        }
+        .milestone-item.locked {
+            background-color: #e9ecef;
+        }
+        .milestone-item.locked input[type="date"] {
+            background-color: #e9ecef;
+            pointer-events: none;
+        }
+        .phase-item button,
+        .milestone-item button {
+            background-color: transparent;
+            border: none;
+            font-size: 1.5em;
+            color: #dc3545;
+            cursor: pointer;
+        }
+        .phase-item button:hover,
+        .milestone-item button:hover {
+            color: #c82333;
+        }
+        .phase-item .move-button {
+            background-color: #ffc107;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 5px 10px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        .phase-item .move-button:hover {
+            background-color: #e0a800;
+        }
+        #chart-container {
+            position: relative;
+            width: 100%;
+            height: 200px;
+            margin-top: 10px;
+        }
+        #chart {
+            width: 100%;
+            height: 100%;
+        }
+        .milestone-badge,
+        .phase-bar {
+            rx: 10;
+            ry: 10;
+            stroke: none;
+            transition: fill 0.3s ease;
+        }
+        .milestone-badge:hover,
+        .phase-bar:hover {
+            fill: #0056b3;
+        }
+        .milestone-label,
+        .phase-label {
+            fill: #fff;
+            font-weight: 700;
+            font-size: 14px;
+        }
+        .milestone-badge {
+            position: absolute;
+            transform: translateX(-50%);
+            padding: 5px 10px;
+            border-radius: 10px;
+            color: white;
+            font-weight: bold;
+            text-align: center;
+            font-size: 0.9em;
+            background-color: #007bff;
+        }
+        .current-date-line {
+            stroke: black;
+            stroke-width: 2;
+            stroke-dasharray: 5px;
+            stroke-dashoffset: -2px;
+        }
+        .current-date-icon {
+            position: absolute;
+            transform: translateX(-50%);
+            color: black;
+            font-size: 2em;
+            top: 70px;
+        }
+        .copypaste-container,
+        .export-import-container {
+            display: flex;
+            justify-content: center;
+            width: 100%;
+            margin-top: 20px;
+            gap: 10px;
+        }
+        .copypaste-container button,
+        .export-import-container button {
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 1em;
+            cursor: pointer;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+        .copypaste-container button:hover,
+        .export-import-container button:hover {
+            background-color: #0056b3;
+        }
+        .generate-container {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            margin-top: 10px;
+        }
+        .generate-button {
+            background-color: #28a745;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            font-size: 1em;
+            border: none;
+            cursor: pointer;
+        }
+        .generate-button:hover {
+            background-color: #218838;
+        }
+        .add-phase-button {
+            background-color: transparent;
+            border: none;
+            font-size: 1.5em;
+            color: #007bff;
+            cursor: pointer;
+        }
+        .add-phase-button:hover {
+            color: #0056b3;
+        }
+        .copied-toast {
+            visibility: hidden;
+            min-width: 250px;
+            background-color: #28a745;
+            color: white;
+            text-align: center;
+            border-radius: 5px;
+            padding: 10px;
+            position: fixed;
+            z-index: 1;
+            left: 50%;
+            bottom: 30px;
+            font-size: 17px;
+            transform: translateX(-50%);
+        }
+        .copied-toast.show {
+            visibility: visible;
+            -webkit-animation: fadein 0.5s, fadeout 0.5s 2.5s;
+            animation: fadein 0.5s, fadeout 0.5s 2.5s;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Planning de Projet</h1>
+        </div>
+
+        <!-- Date du jour -->
+        <div class="input-container">
+            <div class="col-md-12">
+                <label for="current-date">Date du jour :</label>
+                <input type="date" id="current-date" value="" oninput="generateChart()" placeholder="Date du jour">
+                <button class="clear-date-button" title="Effacer la date du jour" onclick="clearDates()">&times;</button>
+            </div>
+        </div>
+
+        <!-- Accordéon pour Phases et Jalons -->
+        <div class="accordion" id="accordionExample">
+            <!-- Phases Section -->
+            <div class="accordion-item">
+                <h2 class="accordion-header" id="headingOne">
+                    <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+                        Gérer les phases
+                    </button>
+                </h2>
+                <div id="collapseOne" class="accordion-collapse collapse show" aria-labelledby="headingOne" data-bs-parent="#accordionExample">
+                    <div class="accordion-body">
+                        <div id="phases-container"></div>
+                        <div class="generate-container">
+                            <button onclick="addEmptyPhase()" class="add-phase-button" title="Ajouter une phase"><i class="bi bi-plus-circle"></i></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Jalons Section -->
+            <div class="accordion-item">
+                <h2 class="accordion-header" id="headingTwo">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+                        Gérer les jalons
+                    </button>
+                </h2>
+                <div id="collapseTwo" class="accordion-collapse collapse" aria-labelledby="headingTwo" data-bs-parent="#accordionExample">
+                    <div class="accordion-body">
+                        <div id="milestones-container"></div>
+                        <div class="generate-container">
+                            <button onclick="addEmptyMilestone()" class="add-phase-button" title="Ajouter un jalon"><i class="bi bi-plus-circle"></i></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bouton Générer le Planning -->
+        <div class="generate-container">
+            <button class="generate-button" title="Générer le planning" onclick="generateChart()">Générer le planning</button>
+        </div>
+
+        <!-- Chart -->
+        <div id="chart-container">
+            <div id="chart"></div>
+        </div>
+
+        <!-- Copier, Exporter et Importer -->
+        <div class="copypaste-container">
+            <button onclick="copyToClipboard()" title="Copier le planning dans le presse-papier"><i class="bi bi-clipboard"></i> Copier dans le presse-papier</button>
+        </div>
+        <div class="export-import-container">
+            <button onclick="exportPlanning()" title="Exporter le planning"><i class="bi bi-download"></i> Exporter le planning (JSON)</button>
+            <button onclick="importPlanning()" title="Importer un planning"><i class="bi bi-upload"></i> Importer le planning (JSON)</button>
+
+            <input type="file" id="import-file" style="display: none;" onchange="handleFileImport(event)">
+        </div>
+
+        <!-- Toast -->
+        <div id="copied-toast" class="copied-toast">Planning copié dans le presse-papier</div>
+    </div>
+
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.1.3/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Fonction pour formater les dates en français
+        function formatDateToFrench(date) {
+            return new Date(date).toLocaleDateString('fr-FR', { year: 'numeric', month: 'long', day: 'numeric' });
+        }
+
+        let phases = [
+            { name: "Faisabilité", duration: 1 },
+            { name: "Cadrage", duration: 3 },
+            { name: "Réalisation", duration: 3 },
+            { name: "Recette", duration: 2 }
+        ];
+
+        let milestones = [
+            { name: "EB", date: "2024-01-01" },
+            { name: "MEP", date: "" } // Jalon final is automatically calculated
+        ];
+
+        function clearDates() {
+            document.getElementById('current-date').value = "";
+            generateChart();
+        }
+
+        function addEmptyPhase() {
+            phases.push({ name: "", duration: 1 });
+            displayPhases();
+        }
+
+        function removePhase(index) {
+            if (index >= 0 && index < phases.length) {
+                phases.splice(index, 1);
+                generateChart();
+                displayPhases();
+            }
+        }
+
+        function movePhaseUp(index) {
+            if (index > 0) {
+                [phases[index], phases[index - 1]] = [phases[index - 1], phases[index]];
+                generateChart();
+                displayPhases();
+            }
+        }
+
+        function movePhaseDown(index) {
+            if (index < phases.length - 1) {
+                [phases[index], phases[index + 1]] = [phases[index + 1], phases[index]];
+                generateChart();
+                displayPhases();
+            }
+        }
+
+        function displayPhases() {
+            const phasesContainer = document.getElementById('phases-container');
+            phasesContainer.innerHTML = '';
+            phases.forEach((phase, index) => {
+                const phaseItem = document.createElement('div');
+                phaseItem.className = 'phase-item';
+                phaseItem.innerHTML = `
+                    <label for="phase-name-${index}">Nom :</label>
+                    <input type="text" id="phase-name-${index}" value="${phase.name}" oninput="updatePhase(${index}, 'name', this.value)">
+                    <label for="phase-duration-${index}">Durée (mois) :</label>
+                    <input type="number" id="phase-duration-${index}" value="${phase.duration}" step="0.5" min="0.5" oninput="updatePhase(${index}, 'duration', this.value)">
+                    <button onclick="movePhaseUp(${index})" class="move-button" title="Monter la phase">↑</button>
+                    <button onclick="movePhaseDown(${index})" class="move-button" title="Descendre la phase">↓</button>
+                    <button onclick="removePhase(${index})" title="Supprimer la phase"><i class="bi bi-x-circle"></i></button>
+                `;
+                phasesContainer.appendChild(phaseItem);
+            });
+        }
+
+        function updatePhase(index, key, value) {
+            phases[index][key] = key === 'duration' ? parseFloat(value) : value;
+            generateChart();
+        }
+
+        function addEmptyMilestone() {
+            milestones.push({ name: "", date: new Date().toISOString().split('T')[0] });
+            displayMilestones();
+        }
+
+        function removeMilestone(index) {
+            if (index >= 2 && index < milestones.length) { // Ensure first two milestones cannot be removed
+                milestones.splice(index, 1);
+                generateChart();
+                displayMilestones();
+            }
+        }
+
+        function displayMilestones() {
+            const milestonesContainer = document.getElementById('milestones-container');
+            milestonesContainer.innerHTML = '';
+            milestones.forEach((milestone, index) => {
+                const milestoneItem = document.createElement('div');
+                milestoneItem.className = 'milestone-item' + (index === 1 ? ' locked' : ''); // Only Jalon final is locked for date
+                milestoneItem.innerHTML = `
+                    <label for="milestone-name-${index}">${index === 0 ? 'Jalon initial :' : index === 1 ? 'Jalon final :' : 'Nom'}</label>
+                    <input type="text" id="milestone-name-${index}" value="${milestone.name}" oninput="updateMilestone(${index}, 'name', this.value)">
+                    <label for="milestone-date-${index}">Date :</label>
+                    <input type="date" id="milestone-date-${index}" value="${milestone.date}" oninput="updateMilestone(${index}, 'date', this.value)" ${index === 1 ? 'readonly' : ''}>
+                    ${index >= 2 ? `<button onclick="removeMilestone(${index})" title="Supprimer le jalon"><i class="bi bi-x-circle"></i></button>` : ''} <!-- Only extra milestones can be removed -->
+                `;
+                milestonesContainer.appendChild(milestoneItem);
+            });
+        }
+
+        function updateMilestone(index, key, value) {
+            milestones[index][key] = value;
+            generateChart();
+        }
+
+        function generateChart() {
+            document.querySelectorAll('.milestone-badge').forEach(badge => badge.remove());
+            document.querySelectorAll('.current-date-icon').forEach(icon => icon.remove());
+            document.querySelectorAll('.current-date-line').forEach(line => line.remove());
+
+            const ebDate = new Date(milestones[0].date);
+            let currentStartDate = ebDate;
+
+            // Update phases with start and end dates
+            phases = phases.map(phase => {
+                const startDate = new Date(currentStartDate);
+                const endDate = addMonths(startDate, phase.duration);
+                currentStartDate = new Date(endDate);
+                return { ...phase, startDate, endDate };
+            });
+
+            // Automatically set the MEP (final milestone) to the end date of the last phase and update the input
+            milestones[1].date = currentStartDate.toISOString().split('T')[0];
+            document.getElementById('milestone-date-1').value = milestones[1].date;
+
+            // Include all milestone and phase dates in the scale calculation
+            const allDates = [
+                ...milestones.map(milestone => new Date(milestone.date)),
+                ...phases.map(p => p.startDate),
+                ...phases.map(p => p.endDate)
+            ];
+
+            const startDate = new Date(Math.min(...allDates));
+            const endDate = new Date(Math.max(...allDates));
+            const extendedStartDate = new Date(startDate);
+            extendedStartDate.setMonth(extendedStartDate.getMonth() - 1);
+            const extendedEndDate = new Date(endDate);
+            extendedEndDate.setMonth(extendedEndDate.getMonth() + 1);
+
+            const svg = d3.select("#chart").html("").append("svg")
+                .attr("width", "100%")
+                .attr("height", "100%");
+
+            // Définir les mois en français pour l'axe X
+            const xScale = d3.scaleTime()
+                .domain([extendedStartDate, extendedEndDate])
+                .range([0, svg.node().getBoundingClientRect().width]);
+
+            const xAxis = d3.axisBottom(xScale)
+                .ticks(d3.timeMonth.every(1))
+                .tickFormat(d3.timeFormatLocale({
+                    dateTime: "%A, %e %B %Y, %X",
+                    date: "%d/%m/%Y",
+                    time: "%H:%M:%S",
+                    periods: ["AM", "PM"],
+                    days: ["dimanche", "lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi"],
+                    shortDays: ["dim", "lun", "mar", "mer", "jeu", "ven", "sam"],
+                    months: ["janvier", "février", "mars", "avril", "mai", "juin", "juillet", "août", "septembre", "octobre", "novembre", "décembre"],
+                    shortMonths: ["janv", "févr", "mars", "avr", "mai", "juin", "juil", "août", "sept", "oct", "nov", "déc"]
+                }).format("%b %Y"))
+                .tickSizeOuter(0);
+
+            svg.append("g")
+                .attr("transform", `translate(0, 180)`)
+                .call(xAxis)
+                .selectAll("text")
+                .style("font-size", "12px")
+                .style("font-weight", "bold");
+
+            const colors = d3.scaleOrdinal(d3.schemeCategory10);
+
+            const bars = svg.selectAll(".bar")
+                .data(phases)
+                .enter()
+                .append("rect")
+                .attr("class", "phase-bar")
+                .attr("x", d => xScale(d.startDate))
+                .attr("y", 120)
+                .attr("width", d => xScale(d.endDate) - xScale(d.startDate))
+                .attr("height", 30)
+                .attr("fill", d => d.name ? colors(phases.indexOf(d)) : "white");
+
+            const labels = svg.selectAll(".label")
+                .data(phases)
+                .enter()
+                .append("text")
+                .attr("class", "phase-label")
+                .attr("x", d => xScale(d.startDate) + (xScale(d.endDate) - xScale(d.startDate)) / 2)
+                .attr("y", 140)
+                .attr("text-anchor", "middle")
+                .text(d => d.name ? d.name : "");
+
+            milestones.forEach(milestone => {
+                if (milestone.name) { // Ensure the milestone appears only if it has a name
+                    addMilestoneToChart(svg, xScale, new Date(milestone.date), milestone.name);
+                }
+            });
+
+            const currentDateInput = document.getElementById('current-date').value;
+            if (currentDateInput) {
+                const currentDate = new Date(currentDateInput);
+                addCurrentDateMarker(svg, xScale, currentDate);
+            }
+        }
+
+        function addMilestoneToChart(svg, xScale, date, label) {
+            const xPosition = xScale(date);
+            const badge = document.createElement('div');
+            badge.className = 'milestone-badge';
+            badge.style.left = `${xPosition}px`;
+            badge.style.top = '90px';
+            badge.textContent = label; // Affiche uniquement le nom du jalon, sans la date
+            document.getElementById('chart-container').appendChild(badge);
+        }
+
+        function addMonths(date, months) {
+            const d = new Date(date);
+            const day = d.getDate();
+            d.setMonth(d.getMonth() + Math.floor(months));
+            if (d.getDate() != day) {
+                d.setDate(0);
+            }
+            const remainingDays = (months % 1) * 30;
+            d.setDate(d.getDate() + remainingDays);
+            return d;
+        }
+
+        function addCurrentDateMarker(svg, xScale, currentDate) {
+            const currentDatePosition = xScale(currentDate);
+
+            svg.append("line")
+                .attr("class", "current-date-line")
+                .attr("x1", currentDatePosition)
+                .attr("y1", 110)
+                .attr("x2", currentDatePosition)
+                .attr("y2", 180);
+
+            const icon = document.createElement('div');
+            icon.className = "current-date-icon";
+            icon.style.left = `${currentDatePosition}px`;
+            icon.innerHTML = '<i class="bi bi-geo-alt"></i>';
+            document.getElementById('chart-container').appendChild(icon);
+        }
+
+        function exportPlanning() {
+            const planningData = {
+                ebDate: milestones[0].date, // Retrocompatibility
+                ebName: milestones[0].name,
+                mepDate: milestones[1].date, // Retrocompatibility
+                mepName: milestones[1].name,
+                phases: phases,
+                milestones: milestones,
+                currentDate: document.getElementById('current-date').value
+            };
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(planningData));
+            const downloadAnchorNode = document.createElement('a');
+            downloadAnchorNode.setAttribute("href", dataStr);
+            downloadAnchorNode.setAttribute("download", "planning.json");
+            document.body.appendChild(downloadAnchorNode);
+            downloadAnchorNode.click();
+            downloadAnchorNode.remove();
+        }
+
+        function importPlanning() {
+            document.getElementById('import-file').click();
+        }
+
+        function handleFileImport(event) {
+            const file = event.target.files[0];
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const planningData = JSON.parse(e.target.result);
+
+                // Retrocompatibility with old JSON structure
+                if (planningData.ebDate && planningData.mepDate) {
+                    milestones = [
+                        { name: planningData.ebName || "Jalon initial", date: planningData.ebDate },
+                        { name: planningData.mepName || "Jalon final", date: planningData.mepDate }
+                    ];
+                } else {
+                    milestones = planningData.milestones || [];
+                }
+
+                phases = planningData.phases || [];
+                if (planningData.hasOwnProperty('currentDate')) {
+                    document.getElementById('current-date').value = planningData.currentDate;
+                } else {
+                    document.getElementById('current-date').value = "";
+                }
+                generateChart();
+                displayPhases();
+                displayMilestones();
+                alert('Planning importé avec succès!');
+            };
+            reader.readAsText(file);
+        }
+
+        function copyToClipboard() {
+            const element = document.getElementById('chart-container');
+            html2canvas(element).then(canvas => {
+                canvas.toBlob(blob => {
+                    const item = new ClipboardItem({ 'image/png': blob });
+                    navigator.clipboard.write([item]).then(() => {
+                        showToast();
+                    }).catch(err => {
+                        console.error('Erreur lors de la copie du planning dans le presse-papier:', err);
+                    });
+                });
+            });
+        }
+
+        function showToast() {
+            const toast = document.getElementById('copied-toast');
+            toast.className = 'copied-toast show';
+            setTimeout(() => {
+                toast.className = 'copied-toast';
+            }, 3000);
+        }
+
+        window.onload = () => {
+            document.getElementById('current-date').value = new Date().toISOString().split('T')[0];
+            displayPhases();
+            displayMilestones();
+            generateChart(); // Ensure everything is displayed at load
+        };
+    </script>
+</body>
+</html>
